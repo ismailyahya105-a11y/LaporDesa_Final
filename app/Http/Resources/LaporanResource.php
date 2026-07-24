@@ -11,6 +11,7 @@ class LaporanResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user_id' => $this->user_id,
             'judul' => $this->judul,
             'kategori' => $this->whenLoaded('kategori', fn () => [
                 'id' => $this->kategori->id,
