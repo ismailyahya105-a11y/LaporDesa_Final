@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Laporan extends Model
 {
@@ -33,5 +34,16 @@ class Laporan extends Model
     public function tanggapan()
     {
         return $this->hasMany(Tanggapan::class);
+    }
+
+    public function hasPhotoFile(): bool
+    {
+        if (! $this->foto) {
+            return false;
+        }
+
+        return str_starts_with($this->foto, 'images/laporan/')
+            ? is_file(public_path($this->foto))
+            : Storage::disk('public')->exists($this->foto);
     }
 }

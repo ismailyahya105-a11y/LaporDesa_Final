@@ -10,6 +10,7 @@ use App\Notifications\LaporanBaruNotification;
 use App\Notifications\StatusLaporanNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class LaporanController extends Controller
@@ -95,16 +96,6 @@ class LaporanController extends Controller
 
     private function uploadPhoto(Request $request): string
     {
-        $directory = public_path('images/laporan');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $file = $request->file('foto');
-        $name = 'laporan_'.bin2hex(random_bytes(16)).'.'.strtolower($file->getClientOriginalExtension());
-        $file->move($directory, $name);
-
-        return 'images/laporan/'.$name;
+        return $request->file('foto')->store('laporan', 'public');
     }
 }

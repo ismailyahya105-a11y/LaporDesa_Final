@@ -9,8 +9,10 @@ use App\Notifications\LaporanBaruNotification;
 use App\Notifications\StatusLaporanNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LaporanController extends Controller
 {
@@ -83,6 +85,23 @@ class LaporanController extends Controller
         $laporan->load(['kategori', 'user', 'tanggapan.user']);
 
         return view('laporan.show', compact('laporan'));
+    }
+
+    /** Serve report photos only to their owner or an administrator. */
+    public function photo(Request $request, Laporan $laporan): BinaryFileResponse
+    {
+        $this->ensureCanView($request, $laporan);
+
+        abort_unless($laporan->hasPhotoFile(), 404);
+
+        $path = str_starts_with((string) $laporan->foto, 'images/laporan/')
+            ? public_path($laporan->foto)
+            : Storage::disk('public')->path($laporan->foto);
+
+        return response()->file($path, [
+            'Cache-Control' => 'private, max-age=86400',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     /**
@@ -169,32 +188,28 @@ class LaporanController extends Controller
         );
     }
 
-    /** Store a photo in public/images/laporan and return its public URL path. */
+    /** Store photos on Laravel's public disk, which can be mounted as a Railway Volume. */
     private function uploadPhoto(Request $request): string
     {
-        $file = $request->file('foto');
-        $directory = public_path('images/laporan');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $namaFile = 'laporan_'.bin2hex(random_bytes(16)).'.'.strtolower($file->getClientOriginalExtension());
-        $file->move($directory, $namaFile);
-
-        return 'images/laporan/'.$namaFile;
+        return $request->file('foto')->store('laporan', 'public');
     }
 
-    /** Delete only files that belong to public/images/laporan. */
+    /** Delete only report photos stored by this application. */
     private function deletePhoto(?string $foto): void
     {
-        if (! $foto || ! str_starts_with($foto, 'images/laporan/')) {
+        if (! $foto) {
             return;
         }
 
-        $path = public_path($foto);
-        if (is_file($path)) {
-            unlink($path);
+        if (str_starts_with($foto, 'images/laporan/')) {
+            $path = public_path($foto);
+            if (is_file($path)) {
+                unlink($path);
+            }
+
+            return;
         }
+
+        Storage::disk('public')->delete($foto);
     }
 }

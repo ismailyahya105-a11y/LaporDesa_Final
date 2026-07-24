@@ -10,9 +10,9 @@
 
 ## Foto dan storage
 
-- Foto **laporan** disimpan langsung di `public/images/laporan`; URL yang tersimpan berbentuk `images/laporan/<nama-acak>`. Pola ini tidak membutuhkan symbolic link dan tetap dapat diakses pada shared hosting selama document root adalah `public/` dan folder tersebut writable.
-- Foto UMKM serta dokumen surat disimpan pada disk `public` di `storage/app/public`, tetapi diakses aplikasi lewat controller. Tautan lokal `public/storage` sudah ada untuk kompatibilitas aset storage; buat ulang di server dengan `php artisan storage:link` hanya bila hosting mendukung symbolic link. Fitur aplikasi tidak bergantung pada tautan itu untuk menampilkan foto UMKM.
-- Sertakan data upload yang sudah ada saat migrasi (`public/images/laporan` dan `storage/app/public`). Deploy kode tanpa dua folder tersebut akan membuat foto lama tidak tersedia.
+- Foto **laporan**, UMKM, dan dokumen surat disimpan pada disk `public` di `storage/app/public`. Aplikasi menyajikan foto laporan dan UMKM melalui controller, sehingga tidak bergantung pada symbolic link untuk menampilkan foto.
+- Pada Railway, tambahkan **Volume** dan mount ke `/app/storage/app/public`. Tanpa volume, seluruh upload akan hilang setiap kali service di-redeploy atau restart.
+- Sertakan data upload yang sudah ada saat migrasi (`storage/app/public`). Deploy tanpa folder atau volume ini membuat foto lama tidak tersedia.
 
 ## API dan keamanan
 

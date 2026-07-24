@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class LaporanResource extends JsonResource
 {
@@ -20,7 +21,7 @@ class LaporanResource extends JsonResource
             ]),
             'isi_laporan' => $this->isi_laporan,
             'foto' => $this->foto,
-            'foto_url' => $this->foto ? url($this->foto) : null,
+            'foto_url' => $this->foto ? Storage::disk('public')->url($this->foto) : null,
             'status' => $this->status,
             'tanggal' => $this->created_at?->toISOString(),
             'pelapor' => UserResource::make($this->whenLoaded('user')),

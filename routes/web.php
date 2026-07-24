@@ -34,6 +34,7 @@ Route::get('/dashboard', function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('kategori', KategoriController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('role:admin');
+    Route::get('laporan/{laporan}/foto', [LaporanController::class, 'photo'])->name('laporan.photo');
     Route::resource('laporan', LaporanController::class);
     Route::post('tanggapan', [TanggapanController::class, 'store'])->name('tanggapan.store');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
