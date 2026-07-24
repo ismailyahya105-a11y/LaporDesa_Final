@@ -111,6 +111,18 @@ class LaporDesaFeatureTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_report_form_creates_default_categories_when_production_database_is_empty(): void
+    {
+        $user = User::factory()->create(['role' => 'masyarakat']);
+
+        $this->actingAs($user)->get(route('laporan.create'))
+            ->assertOk()
+            ->assertSee('Infrastruktur')
+            ->assertSee('Lingkungan');
+
+        $this->assertDatabaseCount('kategoris', 4);
+    }
+
     public function test_smart_village_community_services_and_admin_dashboard(): void
     {
         $user = User::factory()->create(['role' => 'masyarakat']);

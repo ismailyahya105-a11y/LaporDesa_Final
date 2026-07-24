@@ -37,6 +37,8 @@ class LaporanController extends Controller
     {
         abort_if($request->user()->isAdmin(), 403);
 
+        Kategori::ensureDefaults();
+
         return view('laporan.create', [
             'kategoris' => Kategori::query()->orderBy('nama')->get(),
         ]);
