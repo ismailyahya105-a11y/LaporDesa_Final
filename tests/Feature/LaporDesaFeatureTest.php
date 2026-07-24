@@ -14,7 +14,6 @@ use App\Notifications\TanggapanBaruNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class LaporDesaFeatureTest extends TestCase
@@ -67,7 +66,6 @@ class LaporDesaFeatureTest extends TestCase
 
     public function test_complete_community_report_flow_with_photo_and_views(): void
     {
-        Storage::fake('public');
         $user = User::factory()->create(['role' => 'masyarakat']);
         $other = User::factory()->create(['role' => 'masyarakat']);
         $category = Kategori::create(['nama' => 'Infrastruktur']);
@@ -94,21 +92,19 @@ class LaporDesaFeatureTest extends TestCase
         ]);
         $laporan = Laporan::whereBelongsTo($user)->firstOrFail();
         $response->assertRedirect(route('laporan.show', $laporan));
-        Storage::disk('public')->assertExists($laporan->foto);
+        $this->assertFileExists(public_path($laporan->foto));
 
         $this->actingAs($user)->get(route('laporan.index'))
             ->assertOk()->assertSee('Jembatan rusak')->assertDontSee('Laporan pengguna lain');
         $this->actingAs($user)->get(route('laporan.show', $laporan))
             ->assertOk()->assertSee('Jembatan rusak')->assertSee('Infrastruktur')
             ->assertSee('Belum ada tanggapan')->assertSee('Perjalanan Laporan')
-            ->assertSee(route('laporan.photo', $laporan), false);
+            ->assertSee(url($laporan->foto), false);
 
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin)->get(route('laporan.show', $laporan))
             ->assertOk()->assertSee('Jembatan rusak')
-            ->assertSee(route('laporan.photo', $laporan), false);
-        $this->actingAs($admin)->get(route('laporan.photo', $laporan))->assertOk();
-        $this->actingAs($other)->get(route('laporan.photo', $laporan))->assertForbidden();
+            ->assertSee(url($laporan->foto), false);
 
         $this->actingAs($user)->get(route('profile.edit'))->assertOk();
         $this->post(route('logout'))->assertRedirect('/');
@@ -155,5 +151,27 @@ class LaporDesaFeatureTest extends TestCase
         $notification = $user->notifications()->where('data->type', 'status_surat')->firstOrFail();
         $this->get(route('notifications.read', $notification))->assertRedirect(route('surat.index'));
         $this->actingAs($user)->get(route('kategori.index'))->assertForbidden();
+    }
+
+    public function test_community_cannot_vote_on_inactive_or_expired_polling(): void
+    {
+        $user = User::factory()->create(['role' => 'masyarakat']);
+        $inactive = Polling::create(['judul' => 'Polling ditutup', 'aktif' => false]);
+        $expired = Polling::create([
+            'judul' => 'Polling berakhir',
+            'aktif' => true,
+            'berakhir_pada' => now()->subMinute(),
+        ]);
+
+        $inactiveOption = $inactive->options()->create(['opsi' => 'Pilihan A']);
+        $expiredOption = $expired->options()->create(['opsi' => 'Pilihan B']);
+
+        $this->actingAs($user)
+            ->post(route('polling.vote', $inactive), ['polling_option_id' => $inactiveOption->id])
+            ->assertUnprocessable();
+        $this->post(route('polling.vote', $expired), ['polling_option_id' => $expiredOption->id])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseMissing('polling_vote', ['user_id' => $user->id]);
     }
 }

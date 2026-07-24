@@ -34,6 +34,8 @@ php artisan route:cache
 php artisan view:cache
 ```
 
+`npm run build` wajib dijalankan pada setiap deploy yang mengubah frontend. Perintah ini membuat file CSS/JS ber-hash di `public/build` beserta `manifest.json` yang dipakai directive `@vite`. Jika build dilakukan di mesin lokal lalu folder proyek diunggah manual, unggah juga seluruh `public/build` (termasuk `manifest.json` dan `assets/`).
+
 Jangan menjalankan `migrate`, `migrate:fresh`, atau seeder sebagai bagian dari deploy ini karena tidak ada perubahan database yang diperlukan.
 
 ## Checklist verifikasi
