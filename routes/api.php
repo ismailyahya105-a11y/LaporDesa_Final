@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/informasi', [SmartVillageController::class, 'informasi']);
     Route::get('/surat', [SmartVillageController::class, 'surat']); Route::post('/surat', [SmartVillageController::class, 'storeSurat']);
     Route::get('/darurat', [SmartVillageController::class, 'darurat']); Route::post('/darurat', [SmartVillageController::class, 'storeDarurat']);
-    Route::get('/pasar', [SmartVillageController::class, 'pasar']);
+    Route::get('/pasar', [SmartVillageController::class, 'pasar']); Route::post('/pasar', [SmartVillageController::class, 'storePasar']);
     Route::get('/usulan', [SmartVillageController::class, 'usulan']); Route::post('/usulan', [SmartVillageController::class, 'storeUsulan']);
     Route::get('/polling', [SmartVillageController::class, 'polling']); Route::post('/polling/{polling}/vote', [SmartVillageController::class, 'votePolling']);
     Route::get('/peta-desa', [SmartVillageController::class, 'peta']);
