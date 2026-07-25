@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/peta-desa', [SmartVillageController::class, 'peta']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
 
     Route::get('/laporan', [LaporanController::class, 'index']);
     Route::post('/laporan', [LaporanController::class, 'store']);
